@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Генератор инструкции — минимальный</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <h1>Мини-генератор инструкции</h1>
+    <p class="muted">Только Заголовок, Описание, Код и Изображения.</p>
+  </header>
+
+  <main class="layout">
+    <section class="panel panel--form" aria-label="Форма">
+      <form id="genForm">
+        <div class="field">
+          <label for="title">Заголовок*</label>
+          <input id="title" type="text" placeholder="Например: Установка Docker" required />
+        </div>
+
+        <div class="field">
+          <label for="desc">Описание</label>
+          <textarea id="desc" rows="6" placeholder="Кратко опиши, что делает инструкция"></textarea>
+        </div>
+
+        <fieldset class="fieldset">
+          <legend>Код / команды</legend>
+          <div id="codeList" class="dyn-list"></div>
+          <div class="dyn-actions">
+            <button type="button" class="btn" data-add="code">+ Добавить код</button>
+          </div>
+        </fieldset>
+
+        <fieldset class="fieldset">
+          <legend>Изображения (URL)</legend>
+          <div id="imgList" class="dyn-list"></div>
+          <div class="dyn-actions">
+            <button type="button" class="btn" data-add="img">+ Добавить изображение</button>
+          </div>
+        </fieldset>
+
+        <div class="actions">
+          <button type="submit" class="btn btn--primary">Сгенерировать</button>
+          <button type="button" class="btn" id="btnCopy">Скопировать HTML</button>
+          <button type="button" class="btn" id="btnDownload">Скачать .html</button>
+          <button type="reset" class="btn btn--ghost" id="btnReset">Сброс</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel panel--preview" aria-label="Предпросмотр">
+      <div class="preview-toolbar">
+        <span class="muted">Предпросмотр</span>
+      </div>
+      <iframe id="preview" title="Превью"></iframe>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <small class="muted">Генерируется самодостаточный .html без внешних зависимостей.</small>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
+
