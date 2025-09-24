@@ -8,17 +8,6 @@
   <meta name="description" content="Удобная генерация HTML-страниц     </div>
   </div>
 
-  <!-- Fullscreen modal -->
-  <div class="modal" id="fullscreenModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Полноэкранный превью</h3>
-        <button class="modal-close" id="modalClose">&times;</button>
-      </div>
-      <iframe class="modal-iframe" id="fullscreenIframe" title="Полноэкранный превью инструкции"></iframe>
-    </div>
-  </div>
-
   <!-- Шаблон стилей, которые будут встраиваться в сгенерированный HTML -->шаговыми инструкциями. Полностью автономный файл: всё в index.html." />
 
   <style>
@@ -253,73 +242,6 @@
     .muted { color: var(--muted); font-size: 12px; }
     .sep { height:1px; background: var(--border); margin: 8px 0 16px; }
 
-    /* Fullscreen modal */
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.9);
-      z-index: 10000;
-      backdrop-filter: blur(5px);
-    }
-    .modal.show {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      animation: modalFadeIn 0.3s ease-out;
-    }
-    @keyframes modalFadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    .modal-content {
-      width: 95vw;
-      height: 95vh;
-      background: white;
-      border-radius: 12px;
-      overflow: hidden;
-      position: relative;
-      box-shadow: var(--shadow-lg);
-    }
-    .modal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 16px;
-      background: var(--panel);
-      border-bottom: 1px solid var(--border);
-    }
-    .modal-header h3 {
-      margin: 0;
-      font-size: 16px;
-      color: var(--text);
-    }
-    .modal-close {
-      background: none;
-      border: none;
-      font-size: 24px;
-      cursor: pointer;
-      color: var(--muted);
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 6px;
-    }
-    .modal-close:hover {
-      background: rgba(0, 0, 0, 0.1);
-      color: var(--text);
-    }
-    .modal-iframe {
-      width: 100%;
-      height: calc(100% - 60px);
-      border: none;
-    }
-
     /* Styles embedded into generated HTML */
     .gen-style { display:none; }
   </style>
@@ -390,10 +312,7 @@
       <section class="card preview">
         <h2>Превью</h2>
         <div class="body">
-          <div style="position: relative;">
-            <iframe id="preview" title="Предпросмотр инструкции"></iframe>
-            <button class="btn ghost" id="fullscreenBtn" style="position: absolute; top: 8px; right: 8px; z-index: 10; backdrop-filter: blur(10px); background: rgba(255,255,255,0.9);" title="Полный экран">🔍</button>
-          </div>
+          <iframe id="preview" title="Предпросмотр инструкции"></iframe>
           <div class="sep"></div>
           <label for="output">Готовый HTML</label>
           <textarea id="output" readonly></textarea>
@@ -457,10 +376,6 @@
     const addStepBtn = $('#addStep');
     const addFromLinesBtn = $('#addStepFromLines');
     const resetBtn = $('#resetBtn');
-    const fullscreenBtn = $('#fullscreenBtn');
-    const fullscreenModal = $('#fullscreenModal');
-    const fullscreenIframe = $('#fullscreenIframe');
-    const modalClose = $('#modalClose');
 
     function createStep(text='') {
       const idx = stepsEl.children.length + 1;
@@ -714,30 +629,6 @@
       originalUpdatePreview();
       saveDebounced();
     };
-
-    // Fullscreen preview functionality
-    fullscreenBtn.addEventListener('click', () => {
-      const html = buildGeneratedHTML();
-      fullscreenIframe.srcdoc = html;
-      fullscreenModal.classList.add('show');
-      document.body.style.overflow = 'hidden';
-    });
-
-    function closeModal() {
-      fullscreenModal.classList.remove('show');
-      document.body.style.overflow = '';
-    }
-
-    modalClose.addEventListener('click', closeModal);
-    fullscreenModal.addEventListener('click', (e) => {
-      if (e.target === fullscreenModal) closeModal();
-    });
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && fullscreenModal.classList.contains('show')) {
-        closeModal();
-      }
-    });
 
     // Toast helper
     function toast(msg) {
