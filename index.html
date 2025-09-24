@@ -1,39 +1,70 @@
 <!DOCTYPE html>
+<!-- inline generator enabled: last update 2025-09-24 -->
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Генератор HTML-инструкций</title>
-  <meta name="description" content="Удобная генерация HTML-страниц с пошаговыми инструкциями. Полностью автономный файл: всё в index.html." />
+  <meta name="description" content="Удобная генерация HTML-страниц     </div>
+  </div>
+
+  <!-- Fullscreen modal -->
+  <div class="modal" id="fullscreenModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Полноэкранный превью</h3>
+        <button class="modal-close" id="modalClose">&times;</button>
+      </div>
+      <iframe class="modal-iframe" id="fullscreenIframe" title="Полноэкранный превью инструкции"></iframe>
+    </div>
+  </div>
+
+  <!-- Шаблон стилей, которые будут встраиваться в сгенерированный HTML -->шаговыми инструкциями. Полностью автономный файл: всё в index.html." />
 
   <style>
     :root {
-      --bg: #f7f7f9;
-      --panel: #ffffff;
-      --text: #11131a;
-      --muted: #6b7280;
-      --primary: #0d6efd;
-      --primary-600: #0b5ed7;
-      --border: #e5e7eb;
-      --code-bg: #0b1020;
-      --code-fg: #e8eaf6;
+      --bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --bg-pattern: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0);
+      --panel: rgba(255, 255, 255, 0.95);
+      --panel-hover: rgba(255, 255, 255, 0.98);
+      --text: #1a202c;
+      --muted: #718096;
+      --primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --primary-hover: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+      --border: rgba(226, 232, 240, 0.8);
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      --code-bg: #2d3748;
+      --code-fg: #e2e8f0;
     }
     [data-theme="dark"] {
-      --bg: #0b1020;
-      --panel: #11162a;
-      --text: #e6e8f2;
-      --muted: #9aa3b2;
-      --primary: #60a5fa;
-      --primary-600: #3b82f6;
-      --border: #1e243a;
-      --code-bg: #0a0f1e;
-      --code-fg: #e8eaf6;
+      --bg: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+      --bg-pattern: radial-gradient(circle at 1px 1px, rgba(148, 163, 184, 0.1) 1px, transparent 0);
+      --panel: rgba(30, 41, 59, 0.95);
+      --panel-hover: rgba(30, 41, 59, 0.98);
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --primary: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      --primary-hover: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+      --border: rgba(51, 65, 85, 0.8);
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+      --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+      --code-bg: #0f172a;
+      --code-fg: #e2e8f0;
     }
 
     html, body { height: 100%; }
     body {
       margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Noto Sans', 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji';
-      background: var(--bg); color: var(--text);
+      background: var(--bg), var(--bg-pattern);
+      background-size: 100% 100%, 20px 20px;
+      color: var(--text);
+      min-height: 100vh;
+      animation: backgroundShift 20s ease-in-out infinite;
+    }
+    @keyframes backgroundShift {
+      0%, 100% { background-position: 0% 50%, 0 0; }
+      50% { background-position: 100% 50%, 10px 10px; }
     }
     .wrap { max-width: 1200px; margin: 0 auto; padding: 24px; }
     header { display:flex; gap:16px; align-items:center; justify-content:space-between; margin-bottom:16px; }
@@ -43,14 +74,63 @@
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
 
-    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,.04); }
-    .card h2 { margin: 0; padding: 16px 16px 0; font-size: 18px; }
-    .card .body { padding: 16px; }
+    .card { 
+      background: var(--panel); 
+      border: 1px solid var(--border); 
+      border-radius: 16px; 
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+      position: relative;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+    }
+    .card:hover { 
+      transform: translateY(-2px); 
+      box-shadow: var(--shadow-lg);
+      background: var(--panel-hover);
+    }
+    .card h2 { 
+      margin: 0; 
+      padding: 20px 20px 0; 
+      font-size: 18px; 
+      font-weight: 600;
+      background: linear-gradient(135deg, var(--text), var(--muted));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .card .body { padding: 20px; }
 
     label { display:block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
     input[type="text"], textarea, select {
-      width: 100%; padding: 10px 12px; background: transparent; color: var(--text);
-      border: 1px solid var(--border); border-radius: 8px; outline: none;
+      width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.8); color: var(--text);
+      border: 2px solid var(--border); border-radius: 12px; outline: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(5px);
+    }
+    input[type="text"]:focus, textarea:focus, select:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+      background: rgba(255,255,255,0.95);
+    }
+    [data-theme="dark"] input[type="text"], 
+    [data-theme="dark"] textarea, 
+    [data-theme="dark"] select {
+      background: rgba(30, 41, 59, 0.8);
+    }
+    [data-theme="dark"] input[type="text"]:focus, 
+    [data-theme="dark"] textarea:focus, 
+    [data-theme="dark"] select:focus {
+      background: rgba(30, 41, 59, 0.95);
     }
     textarea { resize: vertical; min-height: 68px; }
 
@@ -60,25 +140,185 @@
 
     .btn {
       display:inline-flex; align-items:center; gap:8px; justify-content:center;
-      padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border);
+      padding: 12px 18px; border-radius: 12px; border: 1px solid var(--border);
       background: var(--panel); color: var(--text); cursor:pointer; user-select:none;
+      font-weight: 500; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative; overflow: hidden;
     }
-    .btn.primary { background: var(--primary); color: white; border-color: transparent; }
-    .btn.primary:hover { background: var(--primary-600); }
-    .btn.ghost:hover { background: rgba(0,0,0,.05); }
-    [data-theme="dark"] .btn.ghost:hover { background: rgba(255,255,255,.06); }
-    .btn.icon { width: 36px; height: 36px; padding: 0; }
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+    .btn:hover::before { left: 100%; }
+    .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+    .btn:active { transform: translateY(0); }
+    .btn.primary { 
+      background: var(--primary); 
+      color: white; 
+      border-color: transparent;
+      box-shadow: 0 4px 14px 0 rgba(102, 126, 234, 0.4);
+    }
+    .btn.primary:hover { 
+      background: var(--primary-hover);
+      box-shadow: 0 6px 20px 0 rgba(102, 126, 234, 0.6);
+    }
+    .btn.ghost { background: transparent; }
+    .btn.ghost:hover { 
+      background: rgba(102, 126, 234, 0.1);
+      border-color: rgba(102, 126, 234, 0.3);
+    }
+    .btn.icon { width: 40px; height: 40px; padding: 0; border-radius: 10px; }
 
-    .steps { display:flex; flex-direction:column; gap:12px; }
-    .step { padding: 12px; border:1px dashed var(--border); border-radius: 8px; background: transparent; }
+    .steps { display:flex; flex-direction:column; gap:16px; }
+    .step { 
+      padding: 16px; 
+      border: 2px dashed rgba(102, 126, 234, 0.3); 
+      border-radius: 12px; 
+      background: rgba(255,255,255,0.5);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: stepFadeIn 0.5s ease-out;
+      backdrop-filter: blur(5px);
+    }
+    @keyframes stepFadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .step:hover {
+      border-color: rgba(102, 126, 234, 0.6);
+      background: rgba(255,255,255,0.8);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+    [data-theme="dark"] .step {
+      background: rgba(30, 41, 59, 0.5);
+      border-color: rgba(59, 130, 246, 0.3);
+    }
+    [data-theme="dark"] .step:hover {
+      background: rgba(30, 41, 59, 0.8);
+      border-color: rgba(59, 130, 246, 0.6);
+    }
     .step-head { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
-    .step-index { font-weight: 600; color: var(--muted); width:28px; text-align:right; }
+    .step-index { 
+      font-weight: 600; 
+      color: var(--primary); 
+      width:32px; 
+      height:32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(102, 126, 234, 0.1);
+      border-radius: 50%;
+      font-size: 14px;
+    }
     .step-controls { margin-left:auto; display:flex; gap:6px; }
+    .step-drag-handle {
+      cursor: grab;
+      padding: 4px;
+      border-radius: 6px;
+      color: var(--muted);
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+    }
+    .step-drag-handle:hover {
+      background: rgba(102, 126, 234, 0.1);
+      color: var(--primary);
+    }
+    .step-drag-handle:active {
+      cursor: grabbing;
+    }
+    .step.dragging {
+      opacity: 0.5;
+      transform: rotate(5deg);
+      z-index: 1000;
+      box-shadow: var(--shadow-lg);
+    }
+    .step.drag-over {
+      border-color: #667eea;
+      background: rgba(102, 126, 234, 0.1);
+      transform: scale(1.02);
+    }
+    .steps.drag-active .step:not(.dragging) {
+      transition: transform 0.2s ease;
+    }
 
     .preview iframe { width:100%; height:520px; border:none; background:white; border-radius:8px; }
 
     .muted { color: var(--muted); font-size: 12px; }
     .sep { height:1px; background: var(--border); margin: 8px 0 16px; }
+
+    /* Fullscreen modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 10000;
+      backdrop-filter: blur(5px);
+    }
+    .modal.show {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: modalFadeIn 0.3s ease-out;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .modal-content {
+      width: 95vw;
+      height: 95vh;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: var(--shadow-lg);
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-header h3 {
+      margin: 0;
+      font-size: 16px;
+      color: var(--text);
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--muted);
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+    }
+    .modal-close:hover {
+      background: rgba(0, 0, 0, 0.1);
+      color: var(--text);
+    }
+    .modal-iframe {
+      width: 100%;
+      height: calc(100% - 60px);
+      border: none;
+    }
 
     /* Styles embedded into generated HTML */
     .gen-style { display:none; }
@@ -150,7 +390,10 @@
       <section class="card preview">
         <h2>Превью</h2>
         <div class="body">
-          <iframe id="preview" title="Предпросмотр инструкции"></iframe>
+          <div style="position: relative;">
+            <iframe id="preview" title="Предпросмотр инструкции"></iframe>
+            <button class="btn ghost" id="fullscreenBtn" style="position: absolute; top: 8px; right: 8px; z-index: 10; backdrop-filter: blur(10px); background: rgba(255,255,255,0.9);" title="Полный экран">🔍</button>
+          </div>
           <div class="sep"></div>
           <label for="output">Готовый HTML</label>
           <textarea id="output" readonly></textarea>
@@ -214,6 +457,10 @@
     const addStepBtn = $('#addStep');
     const addFromLinesBtn = $('#addStepFromLines');
     const resetBtn = $('#resetBtn');
+    const fullscreenBtn = $('#fullscreenBtn');
+    const fullscreenModal = $('#fullscreenModal');
+    const fullscreenIframe = $('#fullscreenIframe');
+    const modalClose = $('#modalClose');
 
     function createStep(text='') {
       const idx = stepsEl.children.length + 1;
@@ -240,6 +487,63 @@
       del.addEventListener('click', () => { wrap.remove(); renumber(); updatePreview(); });
       $('.step-text', wrap).addEventListener('input', debounce(updatePreview, 200));
       renumber();
+    }
+
+    function setupDragAndDrop(stepEl) {
+      let draggedElement = null;
+      
+      stepEl.addEventListener('dragstart', (e) => {
+        draggedElement = stepEl;
+        stepEl.classList.add('dragging');
+        stepsEl.classList.add('drag-active');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', stepEl.outerHTML);
+      });
+      
+      stepEl.addEventListener('dragend', () => {
+        stepEl.classList.remove('dragging');
+        stepsEl.classList.remove('drag-active');
+        $$('.step').forEach(el => el.classList.remove('drag-over'));
+        draggedElement = null;
+      });
+      
+      stepEl.addEventListener('dragover', (e) => {
+        if (draggedElement && draggedElement !== stepEl) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+        }
+      });
+      
+      stepEl.addEventListener('dragenter', (e) => {
+        if (draggedElement && draggedElement !== stepEl) {
+          stepEl.classList.add('drag-over');
+        }
+      });
+      
+      stepEl.addEventListener('dragleave', (e) => {
+        if (!stepEl.contains(e.relatedTarget)) {
+          stepEl.classList.remove('drag-over');
+        }
+      });
+      
+      stepEl.addEventListener('drop', (e) => {
+        e.preventDefault();
+        stepEl.classList.remove('drag-over');
+        
+        if (draggedElement && draggedElement !== stepEl) {
+          const rect = stepEl.getBoundingClientRect();
+          const midY = rect.top + rect.height / 2;
+          
+          if (e.clientY < midY) {
+            stepsEl.insertBefore(draggedElement, stepEl);
+          } else {
+            stepsEl.insertBefore(draggedElement, stepEl.nextSibling);
+          }
+          
+          renumber();
+          updatePreview();
+        }
+      });
     }
 
     function moveStep(stepEl, dir) {
@@ -346,15 +650,94 @@
 
     resetBtn.addEventListener('click', () => {
       if (!confirm('Очистить форму и начать заново?')) return;
+      localStorage.removeItem('html-generator-data');
       titleEl.value = ''; introEl.value=''; listTypeEl.value='ol'; themeSel.value='light'; app.setAttribute('data-theme','light');
       stepsEl.innerHTML='';
       createStep('Подготовьте ингредиенты');
       createStep('Следуйте пошаговой инструкции');
       updatePreview();
+      toast('Данные очищены');
     });
 
-    // Live update
-    [titleEl, introEl, listTypeEl].forEach(el => el.addEventListener('input', debounce(updatePreview, 200)));
+    // Auto-save functionality
+    function saveToStorage() {
+      const data = {
+        title: titleEl.value,
+        intro: introEl.value,
+        listType: listTypeEl.value,
+        theme: themeSel.value,
+        steps: $$('.step-text', stepsEl).map(el => el.value)
+      };
+      localStorage.setItem('html-generator-data', JSON.stringify(data));
+    }
+
+    function loadFromStorage() {
+      try {
+        const saved = localStorage.getItem('html-generator-data');
+        if (!saved) return false;
+        
+        const data = JSON.parse(saved);
+        titleEl.value = data.title || '';
+        introEl.value = data.intro || '';
+        listTypeEl.value = data.listType || 'ol';
+        themeSel.value = data.theme || 'light';
+        app.setAttribute('data-theme', data.theme || 'light');
+        
+        stepsEl.innerHTML = '';
+        if (data.steps && data.steps.length > 0) {
+          data.steps.forEach(step => createStep(step));
+        } else {
+          createStep('Откройте инструменты');
+          createStep('Добавьте шаги, при необходимости отредактируйте');
+        }
+        return true;
+      } catch (e) {
+        console.warn('Failed to load from storage:', e);
+        return false;
+      }
+    }
+
+    // Live update with auto-save
+    const saveDebounced = debounce(saveToStorage, 1000);
+    [titleEl, introEl, listTypeEl].forEach(el => {
+      el.addEventListener('input', debounce(() => {
+        updatePreview();
+        saveDebounced();
+      }, 200));
+    });
+    
+    themeSel.addEventListener('change', saveDebounced);
+
+    // Save when steps change
+    const originalUpdatePreview = updatePreview;
+    updatePreview = function() {
+      originalUpdatePreview();
+      saveDebounced();
+    };
+
+    // Fullscreen preview functionality
+    fullscreenBtn.addEventListener('click', () => {
+      const html = buildGeneratedHTML();
+      fullscreenIframe.srcdoc = html;
+      fullscreenModal.classList.add('show');
+      document.body.style.overflow = 'hidden';
+    });
+
+    function closeModal() {
+      fullscreenModal.classList.remove('show');
+      document.body.style.overflow = '';
+    }
+
+    modalClose.addEventListener('click', closeModal);
+    fullscreenModal.addEventListener('click', (e) => {
+      if (e.target === fullscreenModal) closeModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && fullscreenModal.classList.contains('show')) {
+        closeModal();
+      }
+    });
 
     // Toast helper
     function toast(msg) {
@@ -365,8 +748,10 @@
     }
 
     // Bootstrap initial UI
-    createStep('Откройте инструменты');
-    createStep('Добавьте шаги, при необходимости отредактируйте');
+    if (!loadFromStorage()) {
+      createStep('Откройте инструменты');
+      createStep('Добавьте шаги, при необходимости отредактируйте');
+    }
     updatePreview();
   </script>
 </body>
