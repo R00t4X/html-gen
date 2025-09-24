@@ -269,7 +269,7 @@
           <div class="row">
             <div style="flex:1 1 70%">
               <label for="title">Заголовок</label>
-              <input id="title" type="text" placeholder="Например: Как заварить идеальный кофе" />
+              <input id="title" type="text" placeholder="Например: Развёртывание Docker контейнера" />
             </div>
             <div>
               <label for="listType">Тип списка</label>
@@ -282,7 +282,12 @@
 
           <div style="margin-top:12px;">
             <label for="intro">Описание (опционально)</label>
-            <textarea id="intro" placeholder="Краткое описание инструкции..."></textarea>
+            <textarea id="intro" placeholder="Краткое описание процедуры развёртывания..."></textarea>
+          </div>
+
+          <div style="margin-top:12px;">
+            <label for="content">Текст *</label>
+            <textarea id="content" rows="4" placeholder="Основной текст инструкции. Здесь можно описать контекст, требования, предварительные настройки..." required></textarea>
           </div>
 
           <div class="sep"></div>
@@ -341,6 +346,7 @@
       .container { max-width: 900px; margin: 0 auto; padding: 24px; }
       h1 { margin: 0 0 16px; font-size: clamp(22px, 4vw, 32px); }
       p.lead { color: var(--page-muted); margin-top: 0; }
+      .content { margin: 16px 0; line-height: 1.6; }
       ol, ul { padding-left: 20px; }
       li { margin: 8px 0; }
       pre { background: #0a0f1e; color: #e8eaf6; padding: 12px; border-radius: 8px; overflow:auto; }
@@ -365,6 +371,7 @@
     // Form elements
     const titleEl = $('#title');
     const introEl = $('#intro');
+    const contentEl = $('#content');
     const stepsEl = $('#steps');
     const listTypeEl = $('#listType');
     const outputEl = $('#output');
@@ -486,6 +493,7 @@
     function buildGeneratedHTML() {
       const title = titleEl.value.trim() || 'Без названия';
       const intro = introEl.value.trim();
+      const content = contentEl.value.trim();
       const steps = getSteps();
       const tag = listTypeEl.value === 'ul' ? 'ul' : 'ol';
       const theme = themeSel.value;
@@ -508,6 +516,7 @@
   <div class="container">
     <h1>${escapeHtml(title)}</h1>
     ${intro ? `<p class="lead">${escapeHtml(intro)}</p>` : ''}
+    ${content ? `<div class="content">${escapeHtml(content).replaceAll('\n', '<br>')}</div>` : ''}
     <${tag}>
       ${listItems}
     </${tag}>
@@ -566,10 +575,10 @@
     resetBtn.addEventListener('click', () => {
       if (!confirm('Очистить форму и начать заново?')) return;
       localStorage.removeItem('html-generator-data');
-      titleEl.value = ''; introEl.value=''; listTypeEl.value='ol'; themeSel.value='light'; app.setAttribute('data-theme','light');
+      titleEl.value = ''; introEl.value=''; contentEl.value=''; listTypeEl.value='ol'; themeSel.value='light'; app.setAttribute('data-theme','light');
       stepsEl.innerHTML='';
-      createStep('Подготовьте ингредиенты');
-      createStep('Следуйте пошаговой инструкции');
+      createStep('Установить Docker на сервер');
+      createStep('Создать Dockerfile для приложения');
       updatePreview();
       toast('Данные очищены');
     });
@@ -579,6 +588,7 @@
       const data = {
         title: titleEl.value,
         intro: introEl.value,
+        content: contentEl.value,
         listType: listTypeEl.value,
         theme: themeSel.value,
         steps: $$('.step-text', stepsEl).map(el => el.value)
@@ -594,6 +604,7 @@
         const data = JSON.parse(saved);
         titleEl.value = data.title || '';
         introEl.value = data.intro || '';
+        contentEl.value = data.content || '';
         listTypeEl.value = data.listType || 'ol';
         themeSel.value = data.theme || 'light';
         app.setAttribute('data-theme', data.theme || 'light');
@@ -614,7 +625,7 @@
 
     // Live update with auto-save
     const saveDebounced = debounce(saveToStorage, 1000);
-    [titleEl, introEl, listTypeEl].forEach(el => {
+    [titleEl, introEl, contentEl, listTypeEl].forEach(el => {
       el.addEventListener('input', debounce(() => {
         updatePreview();
         saveDebounced();
@@ -640,8 +651,8 @@
 
     // Bootstrap initial UI
     if (!loadFromStorage()) {
-      createStep('Откройте инструменты');
-      createStep('Добавьте шаги, при необходимости отредактируйте');
+      createStep('Откройте терминал на сервере');
+      createStep('Установите необходимые зависимости');
     }
     updatePreview();
   </script>
