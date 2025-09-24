@@ -1,67 +1,373 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Генератор инструкции</title>
-  <link rel="stylesheet" href="styles.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Генератор HTML-инструкций</title>
+  <meta name="description" content="Удобная генерация HTML-страниц с пошаговыми инструкциями. Полностью автономный файл: всё в index.html." />
+
+  <style>
+    :root {
+      --bg: #f7f7f9;
+      --panel: #ffffff;
+      --text: #11131a;
+      --muted: #6b7280;
+      --primary: #0d6efd;
+      --primary-600: #0b5ed7;
+      --border: #e5e7eb;
+      --code-bg: #0b1020;
+      --code-fg: #e8eaf6;
+    }
+    [data-theme="dark"] {
+      --bg: #0b1020;
+      --panel: #11162a;
+      --text: #e6e8f2;
+      --muted: #9aa3b2;
+      --primary: #60a5fa;
+      --primary-600: #3b82f6;
+      --border: #1e243a;
+      --code-bg: #0a0f1e;
+      --code-fg: #e8eaf6;
+    }
+
+    html, body { height: 100%; }
+    body {
+      margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Noto Sans', 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji';
+      background: var(--bg); color: var(--text);
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    header { display:flex; gap:16px; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    header h1 { font-size: clamp(20px, 3vw, 28px); margin: 0; }
+    header .actions { display:flex; gap:8px; align-items:center; }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,.04); }
+    .card h2 { margin: 0; padding: 16px 16px 0; font-size: 18px; }
+    .card .body { padding: 16px; }
+
+    label { display:block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+    input[type="text"], textarea, select {
+      width: 100%; padding: 10px 12px; background: transparent; color: var(--text);
+      border: 1px solid var(--border); border-radius: 8px; outline: none;
+    }
+    textarea { resize: vertical; min-height: 68px; }
+
+    .row { display:flex; gap:12px; align-items:center; }
+    .row > * { flex: 1 1 auto; }
+    .row .shrink { flex: 0 0 auto; }
+
+    .btn {
+      display:inline-flex; align-items:center; gap:8px; justify-content:center;
+      padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--panel); color: var(--text); cursor:pointer; user-select:none;
+    }
+    .btn.primary { background: var(--primary); color: white; border-color: transparent; }
+    .btn.primary:hover { background: var(--primary-600); }
+    .btn.ghost:hover { background: rgba(0,0,0,.05); }
+    [data-theme="dark"] .btn.ghost:hover { background: rgba(255,255,255,.06); }
+    .btn.icon { width: 36px; height: 36px; padding: 0; }
+
+    .steps { display:flex; flex-direction:column; gap:12px; }
+    .step { padding: 12px; border:1px dashed var(--border); border-radius: 8px; background: transparent; }
+    .step-head { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+    .step-index { font-weight: 600; color: var(--muted); width:28px; text-align:right; }
+    .step-controls { margin-left:auto; display:flex; gap:6px; }
+
+    .preview iframe { width:100%; height:520px; border:none; background:white; border-radius:8px; }
+
+    .muted { color: var(--muted); font-size: 12px; }
+    .sep { height:1px; background: var(--border); margin: 8px 0 16px; }
+
+    /* Styles embedded into generated HTML */
+    .gen-style { display:none; }
+  </style>
 </head>
 <body>
-  <header class="site-header">
-    <h1>Генератор инструкций</h1>
-  </header>
-
-  <main class="layout">
-    <section class="panel panel--form" aria-label="Форма">
-      <form id="genForm">
-        <div class="field">
-          <label for="title">Заголовок*</label>
-          <input id="title" type="text" placeholder="Например: Установка Docker" required />
-        </div>
-
-        <div class="field">
-          <label for="desc">Описание</label>
-          <textarea id="desc" rows="6" placeholder="Кратко опиши, что делает инструкция"></textarea>
-        </div>
-
-        <fieldset class="fieldset">
-          <legend>Код / команды</legend>
-          <div id="codeList" class="dyn-list"></div>
-          <div class="dyn-actions">
-            <button type="button" class="btn" data-add="code">+ Добавить код</button>
-          </div>
-        </fieldset>
-
-        <fieldset class="fieldset">
-          <legend>Изображения (URL)</legend>
-          <div id="imgList" class="dyn-list"></div>
-          <div class="dyn-actions">
-            <button type="button" class="btn" data-add="img">+ Добавить изображение</button>
-          </div>
-        </fieldset>
-
-        <div class="actions">
-          <button type="submit" class="btn btn--primary">Сгенерировать</button>
-          <button type="button" class="btn" id="btnCopy">Скопировать HTML</button>
-          <button type="button" class="btn" id="btnDownload">Скачать .html</button>
-          <button type="reset" class="btn btn--ghost" id="btnReset">Сброс</button>
-        </div>
-      </form>
-    </section>
-
-    <section class="panel panel--preview" aria-label="Предпросмотр">
-      <div class="preview-toolbar">
-        <span class="muted">Предпросмотр</span>
+  <div class="wrap" id="app" data-theme="light">
+    <header>
+      <h1>Генератор HTML-инструкций</h1>
+      <div class="actions">
+        <label class="row shrink" style="gap:6px; align-items:center;">
+          <span class="muted">Тема</span>
+          <select id="theme">
+            <option value="light">Светлая</option>
+            <option value="dark">Тёмная</option>
+          </select>
+        </label>
+        <button class="btn ghost" id="resetBtn" title="Очистить форму">Сброс</button>
       </div>
-      <iframe id="preview" title="Превью"></iframe>
-    </section>
-  </main>
+    </header>
 
-  <footer class="site-footer">
-    <small class="muted">2025</small>
-  </footer>
+    <div class="grid">
+      <section class="card">
+        <h2>Настройки и шаги</h2>
+        <div class="body">
+          <div class="row">
+            <div style="flex:1 1 70%">
+              <label for="title">Заголовок</label>
+              <input id="title" type="text" placeholder="Например: Как заварить идеальный кофе" />
+            </div>
+            <div>
+              <label for="listType">Тип списка</label>
+              <select id="listType">
+                <option value="ol">Нумерованный</option>
+                <option value="ul">Маркированный</option>
+              </select>
+            </div>
+          </div>
 
-  <script src="app.js"></script>
+          <div style="margin-top:12px;">
+            <label for="intro">Описание (опционально)</label>
+            <textarea id="intro" placeholder="Краткое описание инструкции..."></textarea>
+          </div>
+
+          <div class="sep"></div>
+
+          <div class="row" style="justify-content:space-between;">
+            <h3 style="margin:0;font-size:16px;">Шаги</h3>
+            <div class="row shrink">
+              <button class="btn ghost" id="addStep">+ Шаг</button>
+              <button class="btn ghost" id="addStepFromLines">Импорт из строк</button>
+            </div>
+          </div>
+
+          <div class="steps" id="steps"></div>
+
+          <div class="sep"></div>
+
+          <div class="row">
+            <button class="btn primary" id="genBtn">Сгенерировать HTML</button>
+            <button class="btn ghost" id="copyBtn">Копировать</button>
+            <button class="btn ghost" id="downloadBtn">Скачать .html</button>
+          </div>
+
+          <p class="muted" style="margin-top:8px;">Подсказка: перетаскивайте шаги кнопками ↑/↓, удаляйте ненужные и обновляйте превью в реальном времени.</p>
+        </div>
+      </section>
+
+      <section class="card preview">
+        <h2>Превью</h2>
+        <div class="body">
+          <iframe id="preview" title="Предпросмотр инструкции"></iframe>
+          <div class="sep"></div>
+          <label for="output">Готовый HTML</label>
+          <textarea id="output" readonly></textarea>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Шаблон стилей, который будет встраиваться в сгенерированный HTML -->
+  <template id="embedded-style">
+    <style>
+      :root {
+        --page-bg: #ffffff;
+        --page-fg: #11131a;
+        --page-muted: #6b7280;
+        --page-border: #e5e7eb;
+      }
+      .dark {
+        --page-bg: #0b1020;
+        --page-fg: #e6e8f2;
+        --page-muted: #9aa3b2;
+        --page-border: #1e243a;
+      }
+      html, body { height: 100%; }
+      body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Noto Sans', 'Helvetica Neue', Arial; background: var(--page-bg); color: var(--page-fg); }
+      .container { max-width: 900px; margin: 0 auto; padding: 24px; }
+      h1 { margin: 0 0 16px; font-size: clamp(22px, 4vw, 32px); }
+      p.lead { color: var(--page-muted); margin-top: 0; }
+      ol, ul { padding-left: 20px; }
+      li { margin: 8px 0; }
+      pre { background: #0a0f1e; color: #e8eaf6; padding: 12px; border-radius: 8px; overflow:auto; }
+      code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; }
+      img { max-width: 100%; border-radius: 8px; }
+      hr { border: none; border-top: 1px solid var(--page-border); margin: 16px 0; }
+    </style>
+  </template>
+
+  <script>
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+    // Theme
+    const app = $('#app');
+    const themeSel = $('#theme');
+    themeSel.addEventListener('change', () => {
+      app.setAttribute('data-theme', themeSel.value);
+      updatePreview();
+    });
+
+    // Form elements
+    const titleEl = $('#title');
+    const introEl = $('#intro');
+    const stepsEl = $('#steps');
+    const listTypeEl = $('#listType');
+    const outputEl = $('#output');
+    const iframe = $('#preview');
+
+    const genBtn = $('#genBtn');
+    const copyBtn = $('#copyBtn');
+    const downloadBtn = $('#downloadBtn');
+    const addStepBtn = $('#addStep');
+    const addFromLinesBtn = $('#addStepFromLines');
+    const resetBtn = $('#resetBtn');
+
+    function createStep(text='') {
+      const idx = stepsEl.children.length + 1;
+      const wrap = document.createElement('div');
+      wrap.className = 'step';
+      wrap.innerHTML = `
+        <div class="step-head">
+          <div class="step-index" aria-hidden="true"></div>
+          <div class="step-controls">
+            <button class="btn icon ghost" title="Выше" aria-label="Переместить выше">↑</button>
+            <button class="btn icon ghost" title="Ниже" aria-label="Переместить ниже">↓</button>
+            <button class="btn icon ghost" title="Удалить" aria-label="Удалить шаг">✕</button>
+          </div>
+        </div>
+        <textarea class="step-text" placeholder="Текст шага..."></textarea>
+        <div class="muted">Поддерживаются многострочные шаги. Нумерация в тексте будет удалена автоматически.</div>
+      `;
+      stepsEl.appendChild(wrap);
+      $('.step-text', wrap).value = text;
+
+      const [up, down, del] = $$('.btn.icon', wrap);
+      up.addEventListener('click', () => moveStep(wrap, -1));
+      down.addEventListener('click', () => moveStep(wrap, +1));
+      del.addEventListener('click', () => { wrap.remove(); renumber(); updatePreview(); });
+      $('.step-text', wrap).addEventListener('input', debounce(updatePreview, 200));
+      renumber();
+    }
+
+    function moveStep(stepEl, dir) {
+      const sib = dir < 0 ? stepEl.previousElementSibling : stepEl.nextElementSibling;
+      if (!sib) return;
+      if (dir < 0) stepsEl.insertBefore(stepEl, sib); else stepsEl.insertBefore(sib, stepEl);
+      renumber();
+      updatePreview();
+    }
+
+    function renumber() { $$('.step', stepsEl).forEach((el, i) => $('.step-index', el).textContent = i + 1); }
+
+    function sanitizeLine(s) {
+      return s.replace(/^\s*[0-9]+[.)-]?\s+/, '').trim();
+    }
+
+    function getSteps() {
+      return $$('.step-text', stepsEl)
+        .map(t => t.value)
+        .map(t => t.split(/\n+/).map(sanitizeLine).filter(Boolean))
+        .filter(arr => arr.length > 0)
+        .map(arr => arr.join('\n'));
+    }
+
+    function buildGeneratedHTML() {
+      const title = titleEl.value.trim() || 'Без названия';
+      const intro = introEl.value.trim();
+      const steps = getSteps();
+      const tag = listTypeEl.value === 'ul' ? 'ul' : 'ol';
+      const theme = themeSel.value;
+
+      const style = $('#embedded-style').innerHTML; // includes <style>...
+
+      const listItems = steps
+        .map(s => `<li>${escapeHtml(s).replaceAll('\n', '<br>')}</li>`)
+        .join('\n        ');
+
+      return `<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${escapeHtml(title)}</title>
+  ${style}
+</head>
+<body class="${theme === 'dark' ? 'dark' : ''}">
+  <div class="container">
+    <h1>${escapeHtml(title)}</h1>
+    ${intro ? `<p class="lead">${escapeHtml(intro)}</p>` : ''}
+    <${tag}>
+      ${listItems}
+    </${tag}>
+  </div>
+</body>
+</html>`;
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[s]));
+    }
+
+    function updatePreview() {
+      const html = buildGeneratedHTML();
+      outputEl.value = html;
+      iframe.srcdoc = html;
+    }
+
+    function debounce(fn, ms=200) {
+      let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn.apply(null, args), ms); };
+    }
+
+    // Actions
+    genBtn.addEventListener('click', updatePreview);
+    addStepBtn.addEventListener('click', () => { createStep(''); updatePreview(); });
+    addFromLinesBtn.addEventListener('click', () => {
+      const raw = prompt('Вставьте список шагов (каждый с новой строки):');
+      if (!raw) return;
+      raw.split(/\n+/).map(s => s.trim()).filter(Boolean).forEach(line => createStep(line));
+      updatePreview();
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      const html = outputEl.value || buildGeneratedHTML();
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(html);
+        } else {
+          outputEl.focus(); outputEl.select(); document.execCommand('copy');
+        }
+        toast('HTML скопирован в буфер обмена');
+      } catch(e) { alert('Не удалось скопировать: ' + e.message); }
+    });
+
+    downloadBtn.addEventListener('click', () => {
+      const html = outputEl.value || buildGeneratedHTML();
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      const safeTitle = (titleEl.value.trim() || 'instruction').replace(/[^\w\-]+/g, '_');
+      a.download = safeTitle + '.html';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+
+    resetBtn.addEventListener('click', () => {
+      if (!confirm('Очистить форму и начать заново?')) return;
+      titleEl.value = ''; introEl.value=''; listTypeEl.value='ol'; themeSel.value='light'; app.setAttribute('data-theme','light');
+      stepsEl.innerHTML='';
+      createStep('Подготовьте ингредиенты');
+      createStep('Следуйте пошаговой инструкции');
+      updatePreview();
+    });
+
+    // Live update
+    [titleEl, introEl, listTypeEl].forEach(el => el.addEventListener('input', debounce(updatePreview, 200)));
+
+    // Toast helper
+    function toast(msg) {
+      const t = document.createElement('div');
+      t.textContent = msg; t.style.cssText = 'position:fixed;left:50%;top:16px;transform:translateX(-50%);background:#111c;color:#fff;padding:8px 12px;border-radius:8px;z-index:9999;opacity:0;transition:.2s;';
+      document.body.appendChild(t); requestAnimationFrame(() => t.style.opacity = '1');
+      setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 200); }, 1400);
+    }
+
+    // Bootstrap initial UI
+    createStep('Откройте инструменты');
+    createStep('Добавьте шаги, при необходимости отредактируйте');
+    updatePreview();
+  </script>
 </body>
 </html>
-
